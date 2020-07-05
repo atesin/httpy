@@ -1,5 +1,5 @@
 HTTPy: Console based HTTP server for python 3
-Requires Ncat to function online (https://nmap.org)
+Requires Ncat to function online (https://nmap.org/ncat)
 Type "httpy.py -h" for more details
 
 httpy just takes HTTP requests from standard input and writes responses to
