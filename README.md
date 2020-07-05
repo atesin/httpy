@@ -1,7 +1,11 @@
-httpy just take HTTP requests from standard input and writes the response to
-standard output, so it requires ncat as external program to function online,
-logs (access, error, etc.) goes to stderr
+HTTPy: Console based HTTP server for python 3
+Requires Ncat to function online (https://nmap.org)
+Type "httpy.py -h" for more details
 
-httpy is licensed under WTFPL, it is written by atesin%gmail,com just to learn
-python so it may contain errors, now since you are adviced you are solely
-responsible for running it and its consequences
+httpy just takes HTTP requests from standard input and writes responses to
+standard output and logs to standard error, it requires external program "ncat"
+to function online
+
+httpy is licensed under WTFPL and published without any warranty, i wrote it
+just to learn python in a fun way so it may contain errors, now you are adviced
+you are the solely responsible for running it and its consequences
