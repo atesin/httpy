@@ -1,0 +1,259 @@
+
+FINDINGS ABOUT HTTP AND CGI (not FastCGI)
+
+========================================
+
+HTTP
+
+Hypertext is ramdomly linked unlike books that are linear, to support hypertext
+content and transmission Tim Berners-Lee created the HTML language and the HTTP
+protocol to transmit it, and the first HTTP server and the first web browser
+(WorldWideWeb), in 1989 in the CERN in a NeXTcube computer =D
+
+https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol
+https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
+
+
+http is a text protocol, client-server, request-response oriented protocol, the
+transactions are like the following (LINE BREAKS ARE 2 ASCII CHARS: 13 + 10):
+
+
+client request                    server response
+---------                         ---------
+request line                      response line
+header1                           header1
+header2                           header2
+...                        -->    ...
+headerN                           headerN
+         <-- blank line                    <-- blank line
+optional content                  optional content
+--------                          ---------
+
+
+CLIENT REQUEST...
+
+
+request line format:  METHOD URL PROTOCOL/VERSION
+
+
+METHOD: there are several methods, but most popular are GET, POST and HEAD
+
+- GET  : pass data encoded in the url
+- POST : pass data encoded in the content
+- HEAD : send just headers as if content were sent, but pass no content
+
+URL: path to the requested file/resource (url encoded), relative to local
+     filesystem server document repository (document root), the http server
+     makes a virtual-local path translation, example...
+     
+- /jobs/resume.html
+
+  if requested url is like above and server document root is /var/htdocs
+  then the actual file path become /var/htdocs/jobs/resume.html, the url could
+  include some variables at the end after "?" (query string)...
+  
+- /jobs/resume.html?age=today&sent=no
+
+
+PROTOCOL/VERSION: protocol used, like "HTTP/1.1", "HTTP/2", etc
+
+  so the final request line could be some like...
+  
+- "GET /jobs/resume.html HTTP/1.1"
+
+
+REQUEST HEADERS: to specify request variables
+
+format "Header-Name: any ascii value"
+some popular request headers are...
+
+"User-Agent: <some string>  : the browser identifies itself (name, version, os)
+"Content-Length: <number>"  : content length in bytes, if present
+"Content-Type: <mime type>" : specify media type for correct browser rendering
+"If-Modified-Since: <date>" : date of the resource cached by browser
+"Host: <domain.name>"       : a webserver could serve many domains at once
+"Connection: keep-alive"    : persistent conection (the default from http 1.1)
+
+- so our previous example request (no content, no query string) has grown to...
+
+-----------
+GET /jobs/resume.html HTTP/1.1
+Host: www.myworkplace.com
+User-Agent: Mozilla/40 Linux/3 x86 etc
+If-Modified-Since: Thu, 09 Oct 2019 23:45:07 GMT
+           <-- blank line
+-----------
+
+
+SERVER RESPONSE...
+
+
+response line format: PROTOCOL/VERSION STATUS-CODE MESSAGE
+
+
+PROTOCOL/VERSION    : could be the same as request
+
+STATUS-CODE MESSAGE : the status (success or error) of the transaction. ex...
+
+- "200 OK"                : content found and sent below
+- "301 Moved Permanently" : redirection with "Location" header (cached)
+- "302 Found"             : redirection with "Location" header (uncached)
+- "304 Not Modified"      : content unchanged (not sent, browser use cached)
+- "404 Not Found"         : content doesn't exists in specified path
+
+
+RESPONSE HEADERS: to specify response variables
+
+format "Header-Name: any ascii value"
+some popular request headers are...
+
+"Server: <some string>      : server software identifies itself (name/version)
+"Content-Length: <number>"  : content length in bytes, if present
+"Content-Type: <mime type>" : specify media type for correct browser rendering
+"Date: <date>"              : modification time of resource stored by server
+"Location: <new uri>"       : browser must re-send the request with new uri
+"Connection: close"         : browser must close the connection
+
+- in our example...
+
+
+client request
+--------------
+GET /jobs/resume.html HTTP/1.1
+Host: www.myworkplace.com    
+User-Agent: Mozilla/40 Linux/3 x86 etc
+If-Modified-Since: Thu, 09 Oct 2019 23:45:07 GMT
+              <-- blank line
+--------------
+
+server response
+---------------
+HTTP/1.1 301 Moved Permanently
+Location: http://new.myworkplace.com/history/resume.html
+Server: httpd/4
+               <-- blank line
+---------------
+
+next client request
+--------------
+GET /history/resume.html HTTP/1.1
+Host: new.myworkplace.com   
+User-Agent: Mozilla/40 Linux/3 x86 etc
+If-Modified-Since: Thu, 09 Oct 2019 23:45:07 GMT
+              <-- blank line
+--------------
+
+server response          -- OR --       server response
+---------------                         --------------
+HTTP/1.1 200 OK                         HTTP/1.1 304 Not Modified
+Server: httpd/4                         Server: httpd/4
+Content-Type: text/html; charset=UTF-8                 <-- blank line
+Content-Length: 1563                    ---------------
+Date: Fri, 10 Oct 2019 23:45:07 GMT
+              <-- blank line            
+<html>                                  
+ <h1>This is my Resume</h1>             
+ etc...                   
+</html>                                 
+---------------                          
+
+
+========================================
+
+CGI (not FastCGI)
+
+https://en.wikipedia.org/wiki/Common_Gateway_Interface
+http://httpd.apache.org/docs/2.4/expr.html#vars
+
+
+http/html was conceived like an online magazine, to display static text and
+images (i.e. files), when content changed somebody had to edit the files and/or
+upload new ones, there was also many other ways to generate dynamic content
+
+this is when CGI comes, to standardize the way interpreter programs could
+communicate with web server to generate dynamic content according requested url
+or file type, like this way...
+
+
+web server                  spawn
+request                     cgi interpreter
+----------                  -----------
+if requested      -->       process data,
+content       (evironment)  generate vaild
+is dynamic    (variables )  http+html
+                                |
+pass                            |
+to     <-- (standard output) <--'
+client                         
+                                
+
+... in other words, when web server spawns a cgi interpreter...
+
+
+                  ( stdin )
+                  (content)       
+                      |              
+                      v              
+               +-------------+             
+(env-vars)     |     cgi     |     (stdout)
+( config ) --> | interpreter | --> ----    
+               +-------------+     http    
+                      |            +       
+                      v            html    
+                   (stderr)        ----    
+                  error logs       
+
+
+- ENVIRONMENT VARIABLES USED BY CGI (some)
+
+SCRIPT_FILENAME : *real* script file path
+HTTP_*          : request headers, uppercased+underlined (ex.: HTTP_USER_AGENT)
+DOCUMENT_ROOT   : local filesystem online files repository directory
+REQUEST_METHOD  : original request method, like GET or POST, etc
+REQUEST_URI     : path part of the original url request (before "?")
+QUERY_STRING    : query part of the original url (after "?") if any
+CONTENT_LENGTH  : length of the content received through standard input if any
+
+
+- STANDARD INPUT: mainly used to receive data with POST method,
+                  same format as query string (in case of html forms)
+
+age=today&sent=no
+
+
+- then the web server can pass the response directly to client, or pre-process
+  it before
+
+
+a program to test cgi in bash (configure in web server) could be for example
+-----------
+#!/bin/bash
+
+OUT_LOGFILE=/tmp/out.log
+
+# log cgi input
+echo ======= VARS  ======= >> OUT_LOGFILE
+echo $(set) >> OUT_LOGFILE
+echo ------- STDIN ------- >> OUT_LOGFILE
+echo $(cat) >> OUT_LOGFILE
+
+# print a 404 and exit (since input is already logged :)
+echo HTTP/1.1 404 Not Found
+echo X-Powered-By: out-log
+echo
+-----------
+
+a program to test php-cgi (plain cgi mode) output, pass php file as 1st param
+-----------
+#!/bin/bash
+
+# usage: [content|post-data] | this-program php-file
+# will print php processed code in stdout
+
+SCRIPT_FILENAME=$1
+REDIRECT_STATUS=200 # required for some php compilations
+# add more cgi vars if you want
+
+/path/to/php-cgi
+-----------
