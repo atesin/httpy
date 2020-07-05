@@ -307,7 +307,7 @@ if runCmd == '-h':
     print("""\
 httpy v2: Console based HTTP server for python 3
 https://github.com/atesin/httpy
-Requires Ncat to function online (https://nmap.org)
+Requires Ncat to function online (https://nmap.org/ncat)
 Default configuration file: httpy.conf
 
 httpy just takes HTTP requests from standard input and writes responses to
