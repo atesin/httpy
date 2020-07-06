@@ -38,8 +38,8 @@ def mainLoop():
     # this function should terminate the request,
     # call it with return() this way: return(sendResponse(statusCode [, bytesData]))
     def sendResponse(status, content=b''):
-        ### checkLinkPersistence
-        if True or req['SERVER_PROTOCOL'] < 'HTTP/1.1' and req['HTTP_CONNECTION'] != 'keep-alive':
+        ### checkLinkPersistence # force disable by modifying "if True or..."
+        if req['SERVER_PROTOCOL'] < 'HTTP/1.1' and req['HTTP_CONNECTION'] != 'keep-alive':
             response.add('Connection: close')
             req['HTTP_CONNECTION'] = 'close'
         # craft response headers
