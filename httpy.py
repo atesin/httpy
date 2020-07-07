@@ -23,7 +23,7 @@ import os
 defaults = \
 {
     #'hostname':  os.environ.get('HOSTNAME', os.environ.get('COMPUTERNAME', '*')),
-    'software': 'HTTPy/7.0',
+    'software': 'HTTPy/2.0',
     'protocol': 'HTTP/1.1 ', # used for response line, note the trailing space
     'gateway' : 'CGI/1.1'
 }
